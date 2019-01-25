@@ -1,12 +1,12 @@
 {
   "name": "loopback-invite-user-mixin",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "",
   "main": "invite-user.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "tsc ./invite-user.ts",
-    "prepublish": "tsc ./invite-user.ts"
+    "prepare": "tsc ./invite-user.ts"
   },
   "keywords": [],
   "author": "Henrik Salmela",
@@ -16,7 +16,9 @@
   },
   "license": "ISC",
   "devDependencies": {
-    "loopback": "^3.24.2",
     "typescript": "^3.2.4"
+  },
+  "dependencies": {
+    "ejs": "^2.6.1"
   }
 }

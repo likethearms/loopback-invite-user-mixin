@@ -1,5 +1,5 @@
-const loopback = require('loopback');
 const path = require('path');
+const ejs = require('ejs');
 
 interface ITemplateData {
   signature: string;
@@ -94,17 +94,19 @@ module.exports = (Model) => {
       const accessTokenId = accessToken.id;
 
       const url = `${emailConfig.invitationUrl}?access_token=${accessTokenId}&user=${userId}`;
-      const renderer = loopback.template(emailConfig.templatePath);
 
-      return Email.send({
-        from: emailConfig.from,
-        to: member.email,
-        subject: emailConfig.subject,
-        html: renderer({ ...templateData, url }),
-      }, (err) => {
-        if (err) return callback(`MailError: InvitationMail: ${err.message}`);
-        console.log('> sending password reset email to:', member.email);
-        return callback(null, member.email);
+      ejs.renderFile(emailConfig.templatePath, { ...templateData, url }, (ejsError, str) => {
+        if (ejsError) return callback(ejsError);
+        return Email.send({
+          from: emailConfig.from,
+          to: member.email,
+          subject: emailConfig.subject,
+          html: str,
+        }, (err) => {
+          if (err) return callback(`MailError: InvitationMail: ${err.message}`);
+          console.log('> sending password reset email to:', member.email);
+          return callback(null, member.email);
+        });
       });
     };
 
