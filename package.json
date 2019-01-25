@@ -5,7 +5,8 @@
   "main": "invite-user.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "tsc ./invite-user.ts"
+    "build": "tsc ./invite-user.ts",
+    "prepublish": "tsc ./invite-user.ts"
   },
   "keywords": [],
   "author": "Henrik Salmela",
