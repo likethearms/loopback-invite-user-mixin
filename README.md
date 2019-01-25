@@ -38,7 +38,7 @@ MODEL CONFIG
 
 ```json
   {
-    "name": "Widget",
+    "name": "User",
     "properties": {
       "name": {
         "type": "string",
