@@ -1,0 +1,21 @@
+{
+  "name": "loopback-invite-user-mixin",
+  "version": "0.1.0",
+  "description": "",
+  "main": "invite-user.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc ./invite-user.ts"
+  },
+  "keywords": [],
+  "author": "Henrik Salmela",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/likethearms/loopback-invite-user-mixin"
+  },
+  "license": "ISC",
+  "devDependencies": {
+    "loopback": "^3.24.2",
+    "typescript": "^3.2.4"
+  }
+}
