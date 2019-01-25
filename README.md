@@ -1,15 +1,13 @@
 Company context
 =============
 
-This module is for the loopback framework. It add user's companyId to every read request's query.
-
-NOTE! Adding companyId to request require active accessToken. It won't work with unauthorized routes.
+This module is for the loopback framework. It send user invitation emails
 
 INSTALL
 =============
 
 ```bash
-  npm i loopback-company-context-mixin --S
+  npm i loopback-invite-user-mixin --S
 ```
 
 SERVER CONFIG
@@ -28,7 +26,7 @@ Add the `mixins` property to your `server/model-config.json`:
     ],
     "mixins": [
       "loopback/common/mixins",
-      "../node_modules/loopback-company-context-mixin",
+      "../node_modules/loopback-invite-user-mixin",
       "../common/mixins"
     ]
   }
@@ -37,8 +35,6 @@ Add the `mixins` property to your `server/model-config.json`:
 
 MODEL CONFIG
 =============
-
-To use with your Models add the `mixins` attribute to the definition object of your model config.
 
 ```json
   {
@@ -49,34 +45,28 @@ To use with your Models add the `mixins` attribute to the definition object of y
       }
     },
     "mixins": {
-      "CompanyContext" : true
+      "InviteUser" : true
     }
   }
 ```
-
-MODEL OPTIONS
+CONFIG EMAIL
 =============
 
-You can use ignore option, if you want that mixin skip some of remote methods.
-
-```json
-  {
-    "name": "Member",
-    "mixins": {
-      "CompanyContext" : {
-        "ignore": [
-          "register",
-          "login",
-          "logout",
-          "resetPassword",
-          "invitationRequest"
-        ]
-      }
-    },
-    "properties": {
-      "name": {
-        "type": "string",
-      }
-    },
-  }
+```js
+  Member.beforeRemote('invitationRequest', (ctx, _, next) => {
+    ctx.emailConfig = {
+      invitationUrl: `${URL}/invite`,
+      from: 'example@example.com',
+      subject: 'Invite | Example app',
+      templatePath: path.resolve(__dirname, './email.ejs'),
+      templateData: {
+        signature: 'Elon',
+        buttonText: 'Accept invitation',
+        lines: [
+          'Please visit the page and accept invitation.'
+        ],
+      },
+    };
+    next();
+  });
 ```
