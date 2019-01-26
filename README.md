@@ -1,4 +1,4 @@
-Company context
+INVITE USER MIXIN
 =============
 
 This module is for the loopback framework. It send user invitation emails

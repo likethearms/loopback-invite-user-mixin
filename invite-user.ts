@@ -8,7 +8,7 @@ interface ITemplateData {
 }
 
 interface IEmailConfig {
-  invitationUrl: string;
+  redirect: string;
   from: string;
   subject: string;
   templatePath: string;
@@ -28,7 +28,7 @@ const defaultTemplateData: ITemplateData = {
 };
 
 const defaultEmailOptions: IEmailConfig = {
-  invitationUrl: 'http://localhost:3000',
+  redirect: 'http://localhost:3000',
   from: 'info@test.com',
   subject: 'Invite',
   templatePath: path.resolve(__dirname, './action-email.ejs'),
@@ -93,7 +93,7 @@ module.exports = (Model) => {
       const userId = member.id;
       const accessTokenId = accessToken.id;
 
-      const url = `${emailConfig.invitationUrl}?access_token=${accessTokenId}&user=${userId}`;
+      const url = `${emailConfig.redirect}?access_token=${accessTokenId}&user=${userId}`;
 
       ejs.renderFile(emailConfig.templatePath, { ...templateData, url }, (ejsError, str) => {
         if (ejsError) return callback(ejsError);
