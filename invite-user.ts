@@ -1,5 +1,6 @@
 const path = require('path');
 const ejs = require('ejs');
+const randomize = require('randomatic');
 
 interface ITemplateData {
   signature: string;
@@ -22,6 +23,9 @@ interface ICTX {
 
 interface IUser {
   email: string;
+  isInvitationComplete: boolean;
+  isInvited: boolean;
+  invitationToken: string;
   companyId: string;
 }
 
@@ -92,6 +96,18 @@ const sendInvitationEmail = (Model, id: string, ctx: ICTX, callback: Function) =
 };
 
 module.exports = (Model) => {
+  Model.defineProperty('isInvited', {
+    type: "boolean",
+  });
+
+  Model.defineProperty('isInvitationComplete', {
+    type: "boolean",
+  });
+
+  Model.defineProperty('invitationToken', {
+    type: "string",
+  });
+
   Model.remoteMethod('invitation', {
     accepts: [
       { arg: 'data', type: 'Member', http: { source: 'body' } },
@@ -105,7 +121,6 @@ module.exports = (Model) => {
       { path: '/invite', verb: 'post', },
     ],
   });
-
 
   Model.remoteMethod('sendInvitationRequest', {
     accepts: [
@@ -121,14 +136,68 @@ module.exports = (Model) => {
     ],
   });
 
+  Model.remoteMethod('validateInvitationToken', {
+    accepts: [
+      { arg: 'uid', type: 'string', http: { source: 'query' } },
+      { arg: 'invitation_token', type: 'string', http: { source: 'query' } }
+    ],
+    returns: [
+      { arg: 'user', type: 'string', root: true, description: 'User model' },
+    ],
+    description: 'Validate invitation token',
+    http: [
+      { path: '/validate-invitation-token', verb: 'get', },
+    ],
+  });
+
+  Model.remoteMethod('acceptInvitation', {
+    accepts: [
+      { arg: 'uid', type: 'string', http: { source: 'query' } },
+      { arg: 'invitation_token', type: 'string', http: { source: 'query' } },
+      { arg: 'password', type: 'string', http: { source: 'formData' } },
+    ],
+    returns: [
+      { arg: 'user', type: 'string', root: true, description: 'User model' },
+    ],
+    description: 'Accept invitation and setup password',
+    http: [
+      { path: '/accept-invitation', verb: 'post', },
+    ],
+  });
 
   Model.sendInvitationRequest = (id: string, ctx: ICTX, callback: Function) => {
     sendInvitationEmail(Model, id, ctx, callback);
   }
 
+  Model.acceptInvitation = (uid: string, invitation_token: string, password: string, callback: Function) => {
+    Model.findOne({ where: { id: uid, invitationToken: invitation_token } })
+      .then((user) => {
+        if (!user) return Promise.reject(new Error('Invalid invitation token'));
+        return user.updateAttributes({
+          password,
+          isInvitationComplete: true,
+          invitationToken: null,
+        });
+      })
+      .then(user => callback(null, user))
+      .catch(callback);
+  }
+
+  Model.validateInvitationToken = (uid: string, invitation_token: string, callback) => {
+    Model
+      .findOne({ where: { id: uid, invitationToken: invitation_token } })
+      .then((user) => {
+        if (!user) return Promise.reject(new Error('Invalid or used invitation.'));
+        return callback(null, user);
+      }).catch(callback);
+  }
+
   Model.invitation = (body: IUser, ctx: ICTX, callback: Function) => {
     Model.findById(ctx.req.accessToken.userId)
       .then(user => {
+        body.isInvitationComplete = false;
+        body.isInvited = true;
+        body.invitationToken = randomize('Aa0', 64);
         body.companyId = user.companyId;
         return Model.create(body)
       })

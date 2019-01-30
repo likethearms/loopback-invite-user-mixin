@@ -1,6 +1,6 @@
 {
   "name": "loopback-invite-user-mixin",
-  "version": "0.1.5",
+  "version": "0.2.0",
   "description": "",
   "main": "invite-user.js",
   "scripts": {
@@ -16,9 +16,11 @@
   },
   "license": "ISC",
   "devDependencies": {
+    "@types/node": "^10.12.19",
     "typescript": "^3.2.4"
   },
   "dependencies": {
-    "ejs": "^2.6.1"
+    "ejs": "^2.6.1",
+    "randomatic": "^3.1.1"
   }
 }
