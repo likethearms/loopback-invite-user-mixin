@@ -22,6 +22,7 @@ interface ICTX {
 }
 
 interface IUser {
+  id?: string;
   email: string;
   isInvitationComplete: boolean;
   isInvited: boolean;
@@ -45,8 +46,7 @@ const defaultEmailOptions: IEmailConfig = {
 }
 
 const sendInvitationEmail = (Model, id: string, ctx: ICTX, callback: Function) => {
-  const { AccessToken, Email } = Model.app.models;
-  let member;
+  const { Email } = Model.app.models;
   let templateData = defaultTemplateData;
   let emailConfig = defaultEmailOptions;
   if (ctx.emailConfig) {
@@ -62,17 +62,9 @@ const sendInvitationEmail = (Model, id: string, ctx: ICTX, callback: Function) =
     }
   }
 
-  const createToken = (m) => {
-    member = m;
-    if (!m) return callback(new Error('There is no such user'));
-    return AccessToken.create({ userId: m.id });
-  };
-
-  const sendEmail = (accessToken) => {
-    const userId = member.id;
-    const accessTokenId = accessToken.id;
-
-    const url = `${emailConfig.redirect}?access_token=${accessTokenId}&user=${userId}`;
+  const sendEmail = (member: IUser) => {
+    if (!member) return callback(new Error('There is no such user'));
+    const url = `${emailConfig.redirect}?invitation_token=${member.invitationToken}&uid=${member.id}`;
 
     ejs.renderFile(emailConfig.templatePath, { ...templateData, url }, (ejsError, str) => {
       if (ejsError) return callback(ejsError);
@@ -90,9 +82,8 @@ const sendInvitationEmail = (Model, id: string, ctx: ICTX, callback: Function) =
   };
 
   Model.findById(id)
-    .then(createToken)
     .then(sendEmail)
-    .catch(e => callback(e));
+    .catch(callback);
 };
 
 module.exports = (Model) => {
