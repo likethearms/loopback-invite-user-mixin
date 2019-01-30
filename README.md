@@ -49,6 +49,25 @@ MODEL CONFIG
     }
   }
 ```
+
+User model ACL
+```json
+    {
+      "accessType": "EXECUTE",
+      "principalType": "ROLE",
+      "principalId": "$unauthenticated",
+      "permission": "ALLOW",
+      "property": "validateInvitationToken"
+    },
+    {
+      "accessType": "EXECUTE",
+      "principalType": "ROLE",
+      "principalId": "$unauthenticated",
+      "permission": "ALLOW",
+      "property": "acceptInvitation"
+    }
+```
+
 CONFIG EMAIL
 =============
 

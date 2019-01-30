@@ -64,6 +64,8 @@ const sendInvitationEmail = (Model, id: string, ctx: ICTX, callback: Function) =
 
   const sendEmail = (member: IUser) => {
     if (!member) return callback(new Error('There is no such user'));
+    if (member.isInvitationComplete) return callback(new Error('Invitation is already done!'));
+    if (!member.invitationToken) return callback(new Error('There is no valid invitation token!'));
     const url = `${emailConfig.redirect}?invitation_token=${member.invitationToken}&uid=${member.id}`;
 
     ejs.renderFile(emailConfig.templatePath, { ...templateData, url }, (ejsError, str) => {
