@@ -72,7 +72,26 @@ CONFIG EMAIL
 =============
 
 ```js
-  Member.beforeRemote('invitationRequest', (ctx, _, next) => {
+  Member.beforeRemote('invitation', (ctx, _, next) => {
+    ctx.emailConfig = {
+      redirect: `${URL}/invite`,
+      from: 'example@example.com',
+      subject: 'Invite | Example app',
+      templatePath: path.resolve(__dirname, './email.ejs'),
+      templateData: {
+        signature: 'Elon',
+        buttonText: 'Accept invitation',
+        lines: [
+          'Please visit the page and accept invitation.'
+        ],
+      },
+    };
+    next();
+  });
+```
+```js
+
+  Member.beforeRemote('sendInvitationRequest', (ctx, _, next) => {
     ctx.emailConfig = {
       redirect: `${URL}/invite`,
       from: 'example@example.com',
