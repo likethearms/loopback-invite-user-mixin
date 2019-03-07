@@ -111,7 +111,7 @@ module.exports = (Model) => {
     ],
     description: 'Create user and send invitation email to user',
     http: [
-      { path: '/invite', verb: 'post', },
+      { path: '/accept-invitation', verb: 'post', },
     ],
   });
 
