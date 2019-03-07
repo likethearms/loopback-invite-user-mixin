@@ -74,7 +74,7 @@ CONFIG EMAIL
 ```js
   Member.beforeRemote('invitation', (ctx, _, next) => {
     ctx.emailConfig = {
-      redirect: `${URL}/invite`,
+      redirect: `${URL}/accept-invitation`,
       from: 'example@example.com',
       subject: 'Invite | Example app',
       templatePath: path.resolve(__dirname, './email.ejs'),
@@ -93,7 +93,7 @@ CONFIG EMAIL
 
   Member.beforeRemote('sendInvitationRequest', (ctx, _, next) => {
     ctx.emailConfig = {
-      redirect: `${URL}/invite`,
+      redirect: `${URL}/accept-invitation`,
       from: 'example@example.com',
       subject: 'Invite | Example app',
       templatePath: path.resolve(__dirname, './email.ejs'),
