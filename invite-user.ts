@@ -170,6 +170,8 @@ module.exports = (Model) => {
           password,
           isInvitationComplete: true,
           invitationToken: null,
+          verificationToken: null,
+          emailVerified: true
         });
       })
       .then(user => callback(null, user))
