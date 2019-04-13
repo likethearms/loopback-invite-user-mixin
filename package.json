@@ -1,6 +1,6 @@
 {
   "name": "loopback-invite-user-mixin",
-  "version": "0.2.6",
+  "version": "0.2.7",
   "description": "",
   "main": "invite-user.js",
   "scripts": {

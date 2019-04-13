@@ -91,14 +91,17 @@ const sendInvitationEmail = (Model, id: string, ctx: ICTX, callback: Function) =
 module.exports = (Model) => {
   Model.defineProperty('isInvited', {
     type: "boolean",
+    default: false,
   });
 
   Model.defineProperty('isInvitationComplete', {
     type: "boolean",
+    default: false,
   });
 
   Model.defineProperty('invitationToken', {
     type: "string",
+    default: null,
   });
 
   Model.remoteMethod('invitation', {
