@@ -7,7 +7,7 @@ INSTALL
 =============
 
 ```bash
-  npm i loopback-invite-user-mixin --S
+  npm i loopback-invite-user-mixin -S
 ```
 
 SERVER CONFIG
