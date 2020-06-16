@@ -1,6 +1,7 @@
-const path = require('path');
-const ejs = require('ejs');
-const randomize = require('randomatic');
+const debug = require("debug")("loopback-invite-user-mixin");
+const path = require("path");
+const ejs = require("ejs");
+const randomize = require("randomatic");
 
 interface ITemplateData {
   signature: string;
@@ -31,21 +32,24 @@ interface IUser {
 }
 
 const defaultTemplateData: ITemplateData = {
-  signature: 'Thank you',
-  buttonText: 'Accept invitation',
-  lines: [
-    'Please visit the page and accept invitation.',
-  ],
+  signature: "Thank you",
+  buttonText: "Accept invitation",
+  lines: ["Please visit the page and accept invitation."],
 };
 
 const defaultEmailOptions: IEmailConfig = {
-  redirect: 'http://localhost:3000/accept-invitation',
-  from: 'info@test.com',
-  subject: 'Invite',
-  templatePath: path.resolve(__dirname, './action-email.ejs'),
-}
+  redirect: "http://localhost:3000/accept-invitation",
+  from: "info@test.com",
+  subject: "Invite",
+  templatePath: path.resolve(__dirname, "./action-email.ejs"),
+};
 
-const sendInvitationEmail = (Model, id: string, ctx: ICTX, callback: Function) => {
+const sendInvitationEmail = (
+  Model,
+  id: string,
+  ctx: ICTX,
+  callback: Function
+) => {
   const { Email } = Model.app.models;
   let templateData = defaultTemplateData;
   let emailConfig = defaultEmailOptions;
@@ -63,143 +67,175 @@ const sendInvitationEmail = (Model, id: string, ctx: ICTX, callback: Function) =
   }
 
   const sendEmail = (member: IUser) => {
-    if (!member) return callback(new Error('There is no such user'));
-    if (member.isInvitationComplete) return callback(new Error('Invitation is already done!'));
-    if (!member.invitationToken) return callback(new Error('There is no valid invitation token!'));
+    if (!member) return callback(new Error("There is no such user"));
+    if (member.isInvitationComplete)
+      return callback(new Error("Invitation is already done!"));
+    if (!member.invitationToken)
+      return callback(new Error("There is no valid invitation token!"));
     const url = `${emailConfig.redirect}?invitation_token=${member.invitationToken}&uid=${member.id}`;
 
-    ejs.renderFile(emailConfig.templatePath, { ...templateData, url }, (ejsError, str) => {
-      if (ejsError) return callback(ejsError);
-      return Email.send({
-        from: emailConfig.from,
-        to: member.email,
-        subject: emailConfig.subject,
-        html: str,
-      }, (err) => {
-        if (err) return callback(`MailError: InvitationMail: ${err.message}`);
-        console.log('> sending password reset email to:', member.email);
-        return callback(null, member.email);
-      });
-    });
+    ejs.renderFile(
+      emailConfig.templatePath,
+      { ...templateData, url },
+      (ejsError, str) => {
+        if (ejsError) return callback(ejsError);
+        return Email.send(
+          {
+            from: emailConfig.from,
+            to: member.email,
+            subject: emailConfig.subject,
+            html: str,
+          },
+          (err) => {
+            if (err)
+              return callback(`MailError: InvitationMail: ${err.message}`);
+            console.log("> sending password reset email to:", member.email);
+            return callback(null, member.email);
+          }
+        );
+      }
+    );
   };
 
-  Model.findById(id)
-    .then(sendEmail)
-    .catch(callback);
+  Model.findById(id).then(sendEmail).catch(callback);
 };
 
-module.exports = (Model) => {
-  Model.defineProperty('isInvited', {
+interface MixinOptions {
+  companyKey?: string;
+  model?: string;
+}
+
+module.exports = (Model, opts?: MixinOptions) => {
+  Model.defineProperty("isInvited", {
     type: "boolean",
     default: false,
   });
 
-  Model.defineProperty('isInvitationComplete', {
+  Model.defineProperty("isInvitationComplete", {
     type: "boolean",
     default: false,
   });
 
-  Model.defineProperty('invitationToken', {
+  Model.defineProperty("invitationToken", {
     type: "string",
     default: null,
   });
 
-  Model.remoteMethod('invitation', {
+  Model.remoteMethod("invitation", {
     accepts: [
-      { arg: 'data', type: 'Member', http: { source: 'body' } },
-      { arg: 'req', type: 'object', http: { source: 'context' } },
+      {
+        arg: "data",
+        type: opts.companyKey || "Member",
+        http: { source: "body" },
+      },
+      { arg: "req", type: "object", http: { source: "context" } },
     ],
     returns: [
-      { arg: 'status', type: 'string', root: false, description: 'Status of sender' },
+      {
+        arg: "status",
+        type: "string",
+        root: false,
+        description: "Status of sender",
+      },
     ],
-    description: 'Create user and send invitation email to user',
-    http: [
-      { path: '/invite', verb: 'post', },
-    ],
+    description: "Create user and send invitation email to user",
+    http: [{ path: "/invite", verb: "post" }],
   });
 
-  Model.remoteMethod('sendInvitationRequest', {
+  Model.remoteMethod("sendInvitationRequest", {
     accepts: [
-      { arg: 'id', type: 'string', required: true },
-      { arg: 'req', type: 'object', http: { source: 'context' } },
+      { arg: "id", type: "string", required: true },
+      { arg: "req", type: "object", http: { source: "context" } },
     ],
     returns: [
-      { arg: 'status', type: 'string', root: false, description: 'Status of sender' },
+      {
+        arg: "status",
+        type: "string",
+        root: false,
+        description: "Status of sender",
+      },
     ],
-    description: 'Send invitation email to user',
-    http: [
-      { path: '/:id/invite-request', verb: 'post' },
-    ],
+    description: "Send invitation email to user",
+    http: [{ path: "/:id/invite-request", verb: "post" }],
   });
 
-  Model.remoteMethod('validateInvitationToken', {
+  Model.remoteMethod("validateInvitationToken", {
     accepts: [
-      { arg: 'uid', type: 'string', http: { source: 'query' } },
-      { arg: 'invitation_token', type: 'string', http: { source: 'query' } }
+      { arg: "uid", type: "string", http: { source: "query" } },
+      { arg: "invitation_token", type: "string", http: { source: "query" } },
     ],
     returns: [
-      { arg: 'user', type: 'string', root: true, description: 'User model' },
+      { arg: "user", type: "string", root: true, description: "User model" },
     ],
-    description: 'Validate invitation token',
-    http: [
-      { path: '/validate-invitation-token', verb: 'get', },
-    ],
+    description: "Validate invitation token",
+    http: [{ path: "/validate-invitation-token", verb: "get" }],
   });
 
-  Model.remoteMethod('acceptInvitation', {
+  Model.remoteMethod("acceptInvitation", {
     accepts: [
-      { arg: 'uid', type: 'string', http: { source: 'query' } },
-      { arg: 'invitation_token', type: 'string', http: { source: 'query' } },
-      { arg: 'password', type: 'string', http: { source: 'formData' } },
+      { arg: "uid", type: "string", http: { source: "query" } },
+      { arg: "invitation_token", type: "string", http: { source: "query" } },
+      { arg: "password", type: "string", http: { source: "formData" } },
     ],
     returns: [
-      { arg: 'user', type: 'string', root: true, description: 'User model' },
+      { arg: "user", type: "string", root: true, description: "User model" },
     ],
-    description: 'Accept invitation and setup password',
-    http: [
-      { path: '/accept-invitation', verb: 'post', },
-    ],
+    description: "Accept invitation and setup password",
+    http: [{ path: "/accept-invitation", verb: "post" }],
   });
 
   Model.sendInvitationRequest = (id: string, ctx: ICTX, callback: Function) => {
     sendInvitationEmail(Model, id, ctx, callback);
-  }
+  };
 
-  Model.acceptInvitation = (uid: string, invitation_token: string, password: string, callback: Function) => {
+  Model.acceptInvitation = (
+    uid: string,
+    invitation_token: string,
+    password: string,
+    callback: Function
+  ) => {
     Model.findOne({ where: { id: uid, invitationToken: invitation_token } })
       .then((user) => {
-        if (!user) return Promise.reject(new Error('Invalid invitation token'));
+        if (!user) return Promise.reject(new Error("Invalid invitation token"));
         return user.updateAttributes({
           password,
           isInvitationComplete: true,
           invitationToken: null,
           verificationToken: null,
-          emailVerified: true
+          emailVerified: true,
         });
       })
-      .then(user => callback(null, user))
+      .then((user) => callback(null, user))
       .catch(callback);
-  }
+  };
 
-  Model.validateInvitationToken = (uid: string, invitation_token: string, callback) => {
-    Model
-      .findOne({ where: { id: uid, invitationToken: invitation_token } })
+  Model.validateInvitationToken = (
+    uid: string,
+    invitation_token: string,
+    callback
+  ) => {
+    Model.findOne({ where: { id: uid, invitationToken: invitation_token } })
       .then((user) => {
-        if (!user) return Promise.reject(new Error('Invalid or used invitation.'));
+        if (!user)
+          return Promise.reject(new Error("Invalid or used invitation."));
         return callback(null, user);
-      }).catch(callback);
-  }
+      })
+      .catch(callback);
+  };
 
   Model.invitation = (body: IUser, ctx: ICTX, callback: Function) => {
     Model.findById(ctx.req.accessToken.userId)
-      .then(user => {
+      .then((user) => {
+        debug("options", opts);
+        const companyKey = opts.companyKey || "companyId";
         body.isInvitationComplete = false;
         body.isInvited = true;
-        body.invitationToken = randomize('Aa0', 64);
-        body.companyId = user.companyId;
-        return Model.create(body)
+        body.invitationToken = randomize("Aa0", 64);
+        body[companyKey] = user[companyKey];
+        debug("invitation body", body);
+        return Model.create(body);
       })
-      .then(u => sendInvitationEmail(Model, u.id, ctx, callback))
+      .then((u) => sendInvitationEmail(Model, u.id, ctx, callback))
       .catch(callback);
   };
 };
